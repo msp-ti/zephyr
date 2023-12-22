@@ -1,0 +1,29 @@
+# SPDX-License-Identifier: Apache-2.0
+
+config CAN_MSPM0G3XXX_CANFD
+	bool "MSPM0G3XXX CANFD driver"
+	default y
+	depends on DT_HAS_TI_MSPM0G3XXX_CANFD_ENABLED
+	select CAN_MCAN
+	help
+	  Enable support for CANFD on the TI MSPM0G3XXX series.
+
+if CAN_MSPM0G3XXX_CANFD
+
+config CAN_MAX_STD_ID_FILTER
+	int "Maximum number of standard (11-bit) ID filters"
+	default 128
+	range 0 128
+	help
+	  Defines the maximum number of filters with standard ID (11-bit)
+	  that can be added by the application.
+
+config CAN_MAX_EXT_ID_FILTER
+	int "Maximum number of extended (29-bit) ID filters"
+	default 64
+	range 0 64
+	help
+	  Defines the maximum number of filters with extended ID (29-bit)
+	  that can be added by the application.
+
+endif # CAN_MSPM0G3XXX_CANFD

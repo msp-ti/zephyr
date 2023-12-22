@@ -18,6 +18,8 @@ extern "C" {
 #define POWER_STARTUP_DELAY (16)
 
 #define SOC_MSPM0_CPUCLK_FREQ_HZ    MHZ(32)
+#define SOC_MSPM0_HFCLK_FREQ_HZ     MHZ(40)
+
 
 /* clang-format on */
 

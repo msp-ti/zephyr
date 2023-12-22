@@ -63,6 +63,8 @@ The MSPM0G3507 LaunchPad development board configuration supports the following 
 +-----------+------------+-----------------------+
 | ADC       | on-chip    | adc                   |
 +-----------+------------+-----------------------+
+| CANFD     | on-chip    | can                   |
++-----------+------------+-----------------------+
 
 More details about the supported peripherals are available in `MSPM0G3507 TRM`_.
 Other hardware features are not currently supported by the Zephyr kernel.

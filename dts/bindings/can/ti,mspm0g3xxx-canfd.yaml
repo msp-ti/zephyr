@@ -1,0 +1,29 @@
+# SPDX-License-Identifier: Apache-2.0
+
+description: TI MSPM0G3XXX CANFD
+
+compatible: "ti,mspm0g3xxx-canfd"
+
+include: ["bosch,m_can-base.yaml", "pinctrl-device.yaml"]
+
+properties:
+  reg:
+    required: true
+
+  interrupts:
+    required: true
+
+  clocks:
+    required: true
+
+  clk-divider:
+    type: int
+    enum:
+      - 1
+      - 2
+      - 4
+
+    description: |
+      Clock divide ratio specification. Enables configuring clock divide
+      settings for the MCAN functional clock input to the MCAN-SS.
+      Divide by 1 is the default unless the property is configured.

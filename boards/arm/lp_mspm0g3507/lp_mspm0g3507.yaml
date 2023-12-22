@@ -13,4 +13,5 @@ supported:
   - i2c
   - pinctrl
   - uart
+  - adc
 vendor: ti

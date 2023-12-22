@@ -80,3 +80,23 @@
 	pinctrl-names = "default";
 	status = "okay";
 };
+
+&adc0 {
+	ti,clk-source = <MSP_ADC_CLOCK_ULPCLK>;
+	ti,clk-divider = <8>;
+	ti,clk-range = <MSP_ADC_CLOCK_RANGE_24TO32>;
+	vref-mv = <2500>;
+	pinctrl-0 = <&adc0_pa25 &adc0_pb24>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+
+&adc1 {
+	ti,clk-source = <MSP_ADC_CLOCK_ULPCLK>;
+	ti,clk-divider = <8>;
+	ti,clk-range = <MSP_ADC_CLOCK_RANGE_24TO32>;
+	vref-mv = <2500>;
+	pinctrl-0 = <&adc1_pb19>;
+	pinctrl-names = "default";
+	status = "okay";
+};

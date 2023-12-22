@@ -3,6 +3,8 @@
 #include <arm/armv6-m.dtsi>
 #include <zephyr/dt-bindings/gpio/gpio.h>
 #include <zephyr/dt-bindings/i2c/i2c.h>
+#include <zephyr/dt-bindings/adc/adc.h>
+#include <zephyr/dt-bindings/adc/mspm0_adc.h>
 
 / {
 
@@ -77,6 +79,21 @@
 			status = "okay";
 		};
 
+		adc0: adc@40000000 {
+			compatible = "ti,mspm0g3xxx-adc";
+			reg = <0x40000000 0x1000>;
+			interrupts = <4 0>;
+			status = "disabled";
+			#io-channel-cells = <1>;
+		};
+
+		adc1: adc@40002000 {
+			compatible = "ti,mspm0g3xxx-adc";
+			reg = <0x40002000 0x1000>;
+			interrupts = <5 0>;
+			status = "disabled";
+			#io-channel-cells = <1>;
+		};
 	};
 };
 

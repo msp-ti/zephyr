@@ -1,0 +1,21 @@
+# SPDX-License-Identifier: Apache-2.0
+
+description: TI MSPM0G3XXX GPIO
+
+compatible: "ti,mspm0g3xxx-gpio"
+
+include: [gpio-controller.yaml, base.yaml]
+
+properties:
+  reg:
+    required: true
+
+  interrupts:
+    required: true
+
+  "#gpio-cells":
+    const: 2
+
+gpio-cells:
+  - pin
+  - flags

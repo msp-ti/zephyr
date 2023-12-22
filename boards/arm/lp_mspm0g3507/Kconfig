@@ -1,0 +1,7 @@
+# TI LP_MSPM0G3507 configuration
+
+# SPDX-License-Identifier: Apache-2.0
+
+if BOARD_LP_MSPM0G3507
+
+endif # BOARD_LP_MSPM0G3507

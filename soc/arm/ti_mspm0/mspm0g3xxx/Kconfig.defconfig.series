@@ -1,0 +1,12 @@
+# TI MSPM0G3XXX
+
+# SPDX-License-Identifier: Apache-2.0
+
+if SOC_SERIES_MSPM0G3XXX
+
+source "soc/arm/ti_mspm0/mspm0g3xxx/Kconfig.defconfig.mspm0g3*"
+
+config SOC_SERIES
+	default "mspm0g3xxx"
+
+endif # SOC_SERIES_MSPM0G3XXX

@@ -1,0 +1,7 @@
+# TI LP_MSPM0G3507 Development Board
+
+# SPDX-License-Identifier: Apache-2.0
+
+config BOARD_LP_MSPM0G3507
+	bool "TI LP_MSPM0G3507"
+	depends on SOC_MSPM0G3507

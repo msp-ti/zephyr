@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: Apache-2.0
+
+config UART_MSPM0G3XXX
+	bool "MSPM0G3XXX UART driver"
+	default y
+	depends on DT_HAS_TI_MSPM0G3XXX_UART_ENABLED
+	select SERIAL_HAS_DRIVER
+	select SERIAL_SUPPORT_INTERRUPT
+	help
+	  This option enables the MSPM0G3XXX UART driver for UART0.

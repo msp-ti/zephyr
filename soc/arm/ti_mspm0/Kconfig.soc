@@ -1,0 +1,5 @@
+# Texas Instruments MSPM0 Family
+
+# SPDX-License-Identifier: Apache-2.0
+
+source "soc/arm/ti_mspm0/*/Kconfig.series"

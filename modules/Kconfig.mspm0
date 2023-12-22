@@ -1,0 +1,6 @@
+# MSPM0 SDK configuration
+
+# SPDX-License-Identifier: Apache-2.0
+
+config HAS_MSPM0SDK
+	bool

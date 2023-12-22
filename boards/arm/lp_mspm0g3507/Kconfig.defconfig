@@ -1,0 +1,7 @@
+# TI LP_MSPM0G3507 development board configuration
+
+# SPDX-License-Identifier: Apache-2.0
+
+config BOARD
+	default "lp_mspm0g3507"
+	depends on BOARD_LP_MSPM0G3507

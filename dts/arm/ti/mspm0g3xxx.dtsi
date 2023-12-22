@@ -66,6 +66,17 @@
 			status = "disabled";
 		};
 
+		i2c1: i2c@400f2000 {
+			compatible = "ti,mspm0g3xxx-i2c";
+			clocks = <&sysclk>;
+			clock-frequency = <I2C_BITRATE_STANDARD>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x400f2000 0x2000>;
+			interrupts = <25 0>;
+			status = "okay";
+		};
+
 	};
 };
 

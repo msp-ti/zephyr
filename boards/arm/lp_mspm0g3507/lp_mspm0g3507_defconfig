@@ -6,6 +6,9 @@ CONFIG_SOC_MSPM0G3507=y
 CONFIG_CORTEX_M_SYSTICK=y
 CONFIG_BUILD_OUTPUT_HEX=y
 
+# enable i2c driver
+CONFIG_I2C=y
+
 # enable gpio driver
 CONFIG_GPIO=y
 

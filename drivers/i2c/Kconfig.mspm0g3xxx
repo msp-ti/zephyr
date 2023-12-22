@@ -1,0 +1,8 @@
+# SPDX-License-Identifier: Apache-2.0
+
+config I2C_MSPM0G3XXX
+	bool "TI I2C MSPM0G3XXX driver"
+	default y
+	depends on DT_HAS_TI_MSPM0G3XXX_I2C_ENABLED
+	help
+	  Enable support for I2C on the TI MSPM0G3XXX series.

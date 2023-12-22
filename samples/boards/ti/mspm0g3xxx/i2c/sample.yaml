@@ -1,0 +1,7 @@
+sample:
+  name: I2C Controller RW Multibyte FIFO Poll for TI MSPM0G3XXX
+tests:
+  sample.boards.ti.mspm0g3xxx.i2c:
+    build_only: true
+    platform_allow: lp_mspm0g3xxx
+    tags: i2c

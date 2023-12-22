@@ -139,7 +139,7 @@ static void ifx_master_event_handler(void *callback_arg, cyhal_i2c_event_t event
 	}
 
 	if (0 != (CYHAL_I2C_SLAVE_WRITE_EVENT & event)) {
-		cyhal_i2c_slave_config_write_buffer(&data->obj, data->target_wr_buffer,
+		cyhal_i2c_slave_config_write_buffer(&data->obj, data->s,
 						    CONFIG_I2C_INFINEON_CAT1_TARGET_BUF);
 		if (data->p_target_config->callbacks->write_requested) {
 			data->p_target_config->callbacks->write_requested(data->p_target_config);

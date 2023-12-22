@@ -2,32 +2,30 @@
 
 #define DT_DRV_COMPAT ti_mspm0g3xxx_uart
 
+/* Zephyr includes */
+#include <zephyr/kernel.h>
+#include <zephyr/drivers/pinctrl.h>
+#include <zephyr/drivers/uart.h>
+#include <zephyr/irq.h>
 #include <soc.h>
 
 /* Defines for UART0 */
 #define UART_0_IBRD_33_kHZ_9600_BAUD (1)
 #define UART_0_FBRD_33_kHZ_9600_BAUD (9)
-#define GPIO_UART_0_IOMUX_RX         (IOMUX_PINCM22)
-#define GPIO_UART_0_IOMUX_TX         (IOMUX_PINCM21)
-#define GPIO_UART_0_IOMUX_RX_FUNC    IOMUX_PINCM22_PF_UART0_RX
-#define GPIO_UART_0_IOMUX_TX_FUNC    IOMUX_PINCM21_PF_UART0_TX
-
-/* Zephyr includes */
-#include <zephyr/drivers/uart.h>
-#include <zephyr/irq.h>
 
 /* Driverlib includes */
 #include <ti/driverlib/dl_uart_main.h>
 
 struct uart_mspm0g3xxx_config {
 	UART_Regs *regs;
+	const struct pinctrl_dev_config *pinctrl;
 };
 
-struct uart_mspm0g3xxx_dev_data_t {
+struct uart_mspm0g3xxx_data {
 	/* UART clock structure */
-	DL_UART_Main_ClockConfig gUART_0ClockConfig;
+	DL_UART_Main_ClockConfig UART_ClockConfig;
 	/* UART config structure */
-	DL_UART_Main_Config gUART_0Config;
+	DL_UART_Main_Config UART_Config;
 #ifdef CONFIG_UART_INTERRUPT_DRIVEN
 	uart_irq_callback_user_data_t cb; /* Callback function pointer */
 	void *cb_data;                    /* Callback function arg */
@@ -36,30 +34,16 @@ struct uart_mspm0g3xxx_dev_data_t {
 
 #ifdef CONFIG_UART_INTERRUPT_DRIVEN
 static void uart_mspm0g3xxx_isr(const struct device *dev);
+#define MSP_INTERRUPT_CALLBACK_FN(index) .cb = NULL,
+#else
+#define MSP_INTERRUPT_CALLBACK_FN(index)
 #endif /* CONFIG_UART_INTERRUPT_DRIVEN */
-
-static const struct uart_mspm0g3xxx_config uart_mspm0g3xxx_dev_cfg_0 = {
-	.regs = (UART_Regs *)DT_INST_REG_ADDR(0)};
-
-static struct uart_mspm0g3xxx_dev_data_t uart_mspm0g3xxx_dev_data_0 = {
-	/* UART clock structure */
-	.gUART_0ClockConfig = {.clockSel = DL_UART_MAIN_CLOCK_LFCLK,
-			       .divideRatio = DL_UART_MAIN_CLOCK_DIVIDE_RATIO_1},
-	/* UART config structure */
-	.gUART_0Config = {.mode = DL_UART_MAIN_MODE_NORMAL,
-			  .direction = DL_UART_MAIN_DIRECTION_TX_RX,
-			  .flowControl = DL_UART_MAIN_FLOW_CONTROL_NONE,
-			  .parity = DL_UART_MAIN_PARITY_NONE,
-			  .wordLength = DL_UART_MAIN_WORD_LENGTH_8_BITS,
-			  .stopBits = DL_UART_MAIN_STOP_BITS_ONE},
-#ifdef CONFIG_UART_INTERRUPT_DRIVEN
-	.cb = NULL,
-#endif /* CONFIG_UART_INTERRUPT_DRIVEN */
-};
 
 static int uart_mspm0g3xxx_init(const struct device *dev)
 {
 	const struct uart_mspm0g3xxx_config *config = dev->config;
+	struct uart_mspm0g3xxx_data *data = dev->data;
+	int ret;
 
 	/* Reset power */
 	DL_UART_Main_reset(config->regs);
@@ -67,15 +51,15 @@ static int uart_mspm0g3xxx_init(const struct device *dev)
 	delay_cycles(POWER_STARTUP_DELAY);
 
 	/* Init UART pins */
-	DL_GPIO_initPeripheralOutputFunction(GPIO_UART_0_IOMUX_TX, GPIO_UART_0_IOMUX_TX_FUNC);
-	DL_GPIO_initPeripheralInputFunction(GPIO_UART_0_IOMUX_RX, GPIO_UART_0_IOMUX_RX_FUNC);
+	ret = pinctrl_apply_state(config->pinctrl, PINCTRL_STATE_DEFAULT);
+	if (ret < 0) {
+		return ret;
+	}
 
 	/* Set UART configs */
-	DL_UART_Main_setClockConfig(
-		config->regs,
-		(DL_UART_Main_ClockConfig *)&uart_mspm0g3xxx_dev_data_0.gUART_0ClockConfig);
-	DL_UART_Main_init(config->regs,
-			  (DL_UART_Main_Config *)&uart_mspm0g3xxx_dev_data_0.gUART_0Config);
+	DL_UART_Main_setClockConfig(config->regs,
+				    (DL_UART_Main_ClockConfig *)&data->UART_ClockConfig);
+	DL_UART_Main_init(config->regs, (DL_UART_Main_Config *)&data->UART_Config);
 
 	/*
 	 * Configure baud rate by setting oversampling and baud rate divisors.
@@ -180,8 +164,8 @@ static int uart_mspm0g3xxx_irq_is_pending(const struct device *dev)
 {
 	const struct uart_mspm0g3xxx_config *config = dev->config;
 
-	return (DL_UART_getEnabledInterruptStatus(config->regs,
-	DL_UART_MAIN_INTERRUPT_RX | DL_UART_MAIN_INTERRUPT_TX))
+	return (DL_UART_getEnabledInterruptStatus(config->regs, DL_UART_MAIN_INTERRUPT_RX |
+									DL_UART_MAIN_INTERRUPT_TX))
 		       ? 1
 		       : 0;
 }
@@ -195,7 +179,7 @@ static int uart_mspm0g3xxx_irq_update(const struct device *dev)
 static void uart_mspm0g3xxx_irq_callback_set(const struct device *dev,
 					     uart_irq_callback_user_data_t cb, void *cb_data)
 {
-	struct uart_mspm0g3xxx_dev_data_t *const dev_data = dev->data;
+	struct uart_mspm0g3xxx_data *const dev_data = dev->data;
 
 	/* Set callback function and data */
 	dev_data->cb = cb;
@@ -212,11 +196,11 @@ static void uart_mspm0g3xxx_irq_callback_set(const struct device *dev,
 static void uart_mspm0g3xxx_isr(const struct device *dev)
 {
 	const struct uart_mspm0g3xxx_config *config = dev->config;
-	struct uart_mspm0g3xxx_dev_data_t *const dev_data = dev->data;
+	struct uart_mspm0g3xxx_data *const dev_data = dev->data;
 
 	/* Get the pending interrupt */
-	int int_status = DL_UART_getEnabledInterruptStatus(config->regs,
-	DL_UART_MAIN_INTERRUPT_RX | DL_UART_MAIN_INTERRUPT_TX);
+	int int_status = DL_UART_getEnabledInterruptStatus(
+		config->regs, DL_UART_MAIN_INTERRUPT_RX | DL_UART_MAIN_INTERRUPT_TX);
 
 	/* Perform callback if defined */
 	if (dev_data->cb) {
@@ -250,6 +234,31 @@ static const struct uart_driver_api uart_mspm0g3xxx_driver_api = {
 #endif /* CONFIG_UART_INTERRUPT_DRIVEN */
 };
 
-DEVICE_DT_INST_DEFINE(0, uart_mspm0g3xxx_init, DT_INST_REG_ADDR(0), &uart_mspm0g3xxx_dev_data_0,
-		      &uart_mspm0g3xxx_dev_cfg_0, PRE_KERNEL_1, CONFIG_SERIAL_INIT_PRIORITY,
-		      (void *)&uart_mspm0g3xxx_driver_api);
+#define MSP_UART_INIT_FN(index)                                                                    \
+                                                                                                   \
+	PINCTRL_DT_INST_DEFINE(index);                                                             \
+                                                                                                   \
+	static const struct uart_mspm0g3xxx_config uart_mspm0g3xxx_cfg_##index = {                 \
+		.regs = (UART_Regs *)DT_INST_REG_ADDR(index),                                      \
+		.pinctrl = PINCTRL_DT_INST_DEV_CONFIG_GET(index),                                  \
+	};                                                                                         \
+                                                                                                   \
+	static struct uart_mspm0g3xxx_data uart_mspm0g3xxx_data_##index = {                        \
+		.UART_ClockConfig = {.clockSel = DL_UART_MAIN_CLOCK_LFCLK,                         \
+				     .divideRatio = DL_UART_MAIN_CLOCK_DIVIDE_RATIO_1},            \
+		.UART_Config =                                                                     \
+			{                                                                          \
+				.mode = DL_UART_MAIN_MODE_NORMAL,                                  \
+				.direction = DL_UART_MAIN_DIRECTION_TX_RX,                         \
+				.flowControl = DL_UART_MAIN_FLOW_CONTROL_NONE,                     \
+				.parity = DL_UART_MAIN_PARITY_NONE,                                \
+				.wordLength = DL_UART_MAIN_WORD_LENGTH_8_BITS,                     \
+				.stopBits = DL_UART_MAIN_STOP_BITS_ONE,                            \
+			},                                                                         \
+		MSP_INTERRUPT_CALLBACK_FN(index)};                                                 \
+                                                                                                   \
+	DEVICE_DT_INST_DEFINE(index, &uart_mspm0g3xxx_init, NULL, &uart_mspm0g3xxx_data_##index,   \
+			      &uart_mspm0g3xxx_cfg_##index, PRE_KERNEL_1,                          \
+			      CONFIG_SERIAL_INIT_PRIORITY, &uart_mspm0g3xxx_driver_api);
+
+DT_INST_FOREACH_STATUS_OKAY(MSP_UART_INIT_FN)

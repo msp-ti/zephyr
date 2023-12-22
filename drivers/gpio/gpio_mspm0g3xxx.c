@@ -123,7 +123,7 @@ static int gpio_mspm0g3xxx_port_set_bits_raw(const struct device *port, uint32_t
 {
 	const struct gpio_mspm0g3xxx_config *config = port->config;
 
-	DL_GPIO_writePins(config->base, mask);
+	DL_GPIO_setPins(config->base, mask);
 
 	return 0;
 }
@@ -189,14 +189,14 @@ static int gpio_mspm0g3xxx_manage_callback(const struct device *port,
 	return gpio_manage_callback(&data->callbacks, callback, set);
 }
 
-static uint32_t gpio_mspm0g3xxx_get_pending_int(const struct device *dev)
+static uint32_t gpio_mspm0g3xxx_get_pending_int(const struct device *port)
 {
-	const struct gpio_mspm0g3xxx_config *config = dev->config;
+	const struct gpio_mspm0g3xxx_config *config = port->config;
 
 	return DL_GPIO_getPendingInterrupt(config->base);
 }
 
-static void gpio_mspm0g3xxx_isr(const struct device *dev)
+static void gpio_mspm0g3xxx_isr(const struct device *port)
 {
 #if DT_NODE_HAS_STATUS(DT_NODELABEL(gpioa), okay)
 	const struct device *dev_a = DEVICE_DT_GET(GPIOA_NODE);
@@ -225,7 +225,7 @@ static void gpio_mspm0g3xxx_isr(const struct device *dev)
 
 static bool init_irq = true;
 
-static int gpio_mspm0g3xxx_init(const struct device *dev)
+static int gpio_mspm0g3xxx_init(const struct device *port)
 {
 	/* Powering up of GPIOs is part of soc.c */
 
@@ -251,6 +251,7 @@ static int gpio_mspm0g3xxx_init(const struct device *dev)
 static int gpio_mspm0g3xxx_port_get_direction(const struct device *port, gpio_port_pins_t map,
 					      gpio_port_pins_t *inputs, gpio_port_pins_t *outputs)
 {
+	return -ENOTSUP;
 }
 #endif /* CONFIG_GPIO_GET_DIRECTION */
 
@@ -280,9 +281,9 @@ static const struct gpio_driver_api gpio_mspm0g3xxx_driver_api = {
 		.pincm_lut = gpio##__suffix##_pincm_lut,                                           \
 	};                                                                                         \
 	static struct gpio_mspm0g3xxx_data gpio_mspm0g3xxx_data_##__suffix;                        \
-	DEVICE_DT_DEFINE(__node, gpio_mspm0g3xxx_init, PM_DEVICE_DT_GET(__node),                   \
-			 &gpio_mspm0g3xxx_data_##__suffix, &gpio_mspm0g3xxx_cfg_##__suffix,        \
-			 PRE_KERNEL_1, CONFIG_GPIO_INIT_PRIORITY, &gpio_mspm0g3xxx_driver_api)
+	DEVICE_DT_DEFINE(__node, gpio_mspm0g3xxx_init, NULL, &gpio_mspm0g3xxx_data_##__suffix,     \
+			 &gpio_mspm0g3xxx_cfg_##__suffix, PRE_KERNEL_1, CONFIG_GPIO_INIT_PRIORITY, \
+			 &gpio_mspm0g3xxx_driver_api)
 
 #define GPIO_DEVICE_INIT_MSPM0G3XXX(__suffix)                                                      \
 	GPIO_DEVICE_INIT(DT_NODELABEL(gpio##__suffix), __suffix,                                   \

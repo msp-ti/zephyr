@@ -57,6 +57,8 @@ The MSPM0G3507 LaunchPad development board configuration supports the following 
 +-----------+------------+-----------------------+
 | GPIO      | on-chip    | gpio                  |
 +-----------+------------+-----------------------+
+| PINMUX    | on-chip    | pinctrl               |
++-----------+------------+-----------------------+
 
 More details about the supported peripherals are available in `MSPM0G3507 TRM`_.
 Other hardware features are not currently supported by the Zephyr kernel.

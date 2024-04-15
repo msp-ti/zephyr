@@ -98,6 +98,13 @@
 	status = "disabled";
 };
 
+&spi1 {
+	pinctrl-0 = <&spi1_sclk_pb9 &spi1_pico_pb8 &spi1_poci_pb7 &spi1_cs0_pb6>;
+	pinctrl-names = "default";
+	cs-gpios = <&gpiob 6 GPIO_ACTIVE_LOW>;
+	status = "okay";
+};
+
 &wdt0 {
 	status = "disabled";
 }; 

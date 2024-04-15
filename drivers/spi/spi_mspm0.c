@@ -70,10 +70,10 @@ static int spi_mspm0_configure(const struct device *dev, const struct spi_config
 		return 0;
 	}
 
-	// if (SPI_MODE(spi_cfg->operation) == DL_SPI_MODE_PERIPHERAL) {
-	// 	/* todo: not yet tested so don't add support yet */
-	// 	return -ENOTSUP;
-	// }
+	if (SPI_MODE(spi_cfg->operation) == DL_SPI_MODE_PERIPHERAL) {
+		/* todo: not yet tested so don't add support yet */
+		return -ENOTSUP;
+	}
 
 	if (spi_cfg->frequency > (cfg->clock_frequency / 2)) {
 		return -EINVAL;
@@ -98,12 +98,7 @@ static int spi_mspm0_configure(const struct device *dev, const struct spi_config
 	/* peripheral should always be disabled prior to applying a new configuration */
 	DL_SPI_disable(cfg->base);
 	DL_SPI_init(cfg->base, (DL_SPI_Config *)&dl_cfg);
-	if(SPI_OP_MODE_GET(spi_cfg->operation) == SPI_OP_MODE_SLAVE){
-		DL_SPI_setBitRateSerialClockDivider(cfg->base, 1);
-	}
-	else{
-		DL_SPI_setBitRateSerialClockDivider(cfg->base, (uint32_t)clock_scr);
-	}
+	DL_SPI_setBitRateSerialClockDivider(cfg->base, (uint32_t)clock_scr);
 
 	data->dfs = BYTES_PER_FRAME(SPI_WORD_SIZE_GET(spi_cfg->operation));
 	if (data->dfs > 2) {
@@ -151,17 +146,12 @@ static void spi_mspm0_frame_tx(const struct device *dev)
 			tx_frame = UNALIGNED_GET((uint32_t *)(ctx->tx_buf));
 		}
 	}
-	
-	// put data into the FIFO if there's any space
-	if(!DL_SPI_isTXFIFOFull(cfg->base)){
-		DL_SPI_transmitData32(cfg->base, tx_frame);
-	}
-	//DL_SPI_transmitDataBlocking32(cfg->base, tx_frame);
-	
+
+	DL_SPI_transmitDataBlocking32(cfg->base, tx_frame);
 	while (DL_SPI_isBusy(cfg->base)) {
 		/* wait for tx fifo to be sent */
 	}
-	
+
 	spi_context_update_tx(ctx, data->dfs, 1);
 }
 
@@ -171,15 +161,7 @@ static void spi_mspm0_frame_rx(const struct device *dev)
 	const struct spi_mspm0_config *cfg = dev->config;
 	struct spi_context *ctx = &data->ctx;
 
-	//FIXME: polling: only receive data if it's good (RX FIFO non-empty), otherwise pass through function with 
-	// same context and no data
-	uint32_t rx_frame;
-	if(!DL_SPI_receiveDataCheck32(cfg->base, &rx_frame)){
-		printf("Here!\n");
-		return;
-	}
-	 
-	//const uint32_t rx_frame = DL_SPI_receiveDataBlocking32(cfg->base);
+	const uint32_t rx_frame = DL_SPI_receiveDataBlocking32(cfg->base);
 
 	/* only update rx buffer if the context is configured to do so
 	 * could be eg. if a write is triggered without a read - here the peripheral would not
@@ -200,21 +182,18 @@ static void spi_mspm0_frame_rx(const struct device *dev)
 	spi_context_update_rx(ctx, data->dfs, 1);
 }
 
-static void spi_mspm0_start_transfer(const struct device *dev, const struct spi_config *spi_cfg )
+static void spi_mspm0_start_transfer(const struct device *dev)
 {
 	struct spi_mspm0_data *data = dev->data;
 	struct spi_context *ctx = &data->ctx;
-	if(SPI_OP_MODE_GET(spi_cfg->operation) == SPI_OP_MODE_MASTER){
-		spi_context_cs_control(ctx, true); //Master function, will not need to set cs low
-	}	
-	
+
+	spi_context_cs_control(ctx, true);
+
 	while (spi_mspm0_transfer_ongoing(ctx)) {
-		//pin toggle here for debugging
-		DL_GPIO_togglePins(GPIO_LEDS_PORT, GPIO_LEDS_PIN_0_PIN);
 		spi_mspm0_frame_tx(dev);
 		spi_mspm0_frame_rx(dev);
 	}
-	
+
 	spi_context_cs_control(ctx, false);
 	spi_context_complete(ctx, dev, 0);
 }
@@ -226,32 +205,17 @@ static int spi_mspm0_transceive(const struct device *dev, const struct spi_confi
 	struct spi_mspm0_data *data = dev->data;
 	struct spi_context *ctx = &data->ctx;
 
-	const struct spi_mspm0_config *mspm0_cfg = dev->config;
-
 	spi_context_lock(ctx, false, NULL, NULL, spi_cfg);
 
 	int ret = spi_mspm0_configure(dev, spi_cfg);
-	
-	//Check if FIFO is not empty, if not empty return error
-	if(!DL_SPI_isRXFIFOEmpty(mspm0_cfg->base) ){
-		printf("Error! RX FIFO is not empty\n");
-		return -EINVAL;
-	}
 
-	if(!DL_SPI_isTXFIFOEmpty(mspm0_cfg->base) ){
-		printf("Error! TX FIFO is not empty\n");
-		return -EINVAL;
-	}
-
-	
 	if (ret != 0) {
 		spi_context_release(ctx, ret);
 		return ret;
 	}
-	
+
 	spi_context_buffers_setup(ctx, tx_bufs, rx_bufs, data->dfs);
-		
-	spi_mspm0_start_transfer(dev, spi_cfg);
+	spi_mspm0_start_transfer(dev);
 
 	ret = spi_context_wait_for_completion(ctx);
 	spi_context_release(ctx, ret);

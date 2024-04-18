@@ -13,10 +13,6 @@
 #include <zephyr/irq.h>
 #include <soc.h>
 
-/* Defines for UART0 */
-#define UART_0_IBRD_33_kHZ_9600_BAUD (1)
-#define UART_0_FBRD_33_kHZ_9600_BAUD (9)
-
 /* Driverlib includes */
 #include <ti/driverlib/dl_uart_main.h>
 
@@ -74,7 +70,7 @@ static int uart_mspm0_init(const struct device *dev)
 	 * Configure baud rate by setting oversampling and baud rate divisor
 	 * from the device tree data current-speed
 	 */
-	DL_UART_Main_configBaudRate(config->regs, 32000000, config->current_speed);
+	DL_UART_Main_configBaudRate(config->regs, config->clock_frequency, config->current_speed);
 
 #ifdef CONFIG_UART_INTERRUPT_DRIVEN
 	config->irq_config_func(dev);
@@ -264,6 +260,7 @@ static const struct uart_driver_api uart_mspm0_driver_api = {
 	\
 	static const struct uart_mspm0_config uart_mspm0_cfg_##index = {	\
 		.regs = (UART_Regs *)DT_INST_REG_ADDR(index),		\
+		.clock_frequency = DT_PROP(DT_INST_CLOCKS_CTLR(index), clock_frequency),           \
 		.current_speed = DT_INST_PROP(index, current_speed),\
 		.pinctrl = PINCTRL_DT_INST_DEV_CONFIG_GET(index),	\
 		IF_ENABLED(CONFIG_UART_INTERRUPT_DRIVEN,	\

@@ -138,7 +138,7 @@ static int uart_mspm0_irq_tx_ready(const struct device *dev)
 	const struct uart_mspm0_config *config = dev->config;
 
 	return (DL_UART_Main_getEnabledInterruptStatus(
-		config->regs, DL_UART_MAIN_INTERRUPT_TX)) ? 0 : 1;
+		config->regs, DL_UART_MAIN_INTERRUPT_TX)) ? 1 : 0;
 }
 
 static void uart_mspm0_irq_rx_enable(const struct device *dev)

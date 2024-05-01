@@ -23,7 +23,7 @@ void test_basic_write_9bit_words(const struct device *dev,
 	struct spi_config config;
 
 	config.frequency = 125000;
-	config.operation = SPI_OP_MODE_MASTER | SPI_WORD_SET(9);
+	config.operation = SPI_OP_MODE_MASTER | SPI_WORD_SET(8); //SPI_MODE_LOOP
 	config.slave = 0;
 	config.cs = *cs;
 
@@ -38,6 +38,37 @@ void test_basic_write_9bit_words(const struct device *dev,
 	printf("basic_write_9bit_words; ret: %d\n", ret);
 	printf(" wrote %04x %04x %04x %04x %04x\n",
 		buff[0], buff[1], buff[2], buff[3], buff[4]);
+}
+void test_8bit_xfer(const struct device *dev, struct spi_cs_control *cs)
+{
+	struct spi_config config;
+
+	config.frequency = 1000000;
+	config.operation = SPI_OP_MODE_MASTER | SPI_WORD_SET(8);
+	config.slave = 0;
+	config.cs = *cs;
+
+	enum { datacount = 5 };
+	uint8_t buff[datacount] = { 0x01, 0x02, 0x03, 0x04, 0x05};
+	uint8_t rxdata[datacount];
+
+	struct spi_buf tx_buf[1] = {
+		{.buf = buff, .len = datacount},
+	};
+	struct spi_buf rx_buf[1] = {
+		{.buf = rxdata, .len = datacount},
+	};
+
+	struct spi_buf_set tx_set = { .buffers = tx_buf, .count = 1 };
+	struct spi_buf_set rx_set = { .buffers = rx_buf, .count = 1 };
+
+	int ret = spi_transceive(dev, &config, &tx_set, &rx_set);
+
+	printf("8bit_loopback_partial; ret: %d\n", ret);
+	printf(" tx (i)  : %02x %02x %02x %02x %02x\n",
+	       buff[0], buff[1], buff[2], buff[3], buff[4]);
+	printf(" rx (i)  : %02x %02x %02x %02x %02x\n",
+	       rxdata[0], rxdata[1], rxdata[2], rxdata[3], rxdata[4]);
 }
 
 int main(void)
@@ -59,8 +90,12 @@ int main(void)
 	 * locate on a scope/analyzer, the longer delay at the end helps discern
 	 * where the pattern repeats.
 	 */
-	while (1) {
+	while (1) 
+	{
 		test_basic_write_9bit_words(dev, &cs_ctrl);
+		k_sleep(K_MSEC(200));
+
+		test_8bit_xfer(dev, &cs_ctrl);
 		k_sleep(K_MSEC(200));
 	}
 	return 0;

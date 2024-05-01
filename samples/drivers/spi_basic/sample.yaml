@@ -1,12 +1,12 @@
 sample:
-  name: SPI Bitbang Driver Sample
+  name: SPI Basic Example
 tests:
-  sample.drivers.spi.bitbang:
+  sample.drivers.spi.basic:
     tags:
       - drivers
       - spi
       - gpio
-    platform_allow: nrf52840dk/nrf52840
+    platform_allow: lp_mspm0g3507
     depends_on: gpio
     harness: console
     harness_config:

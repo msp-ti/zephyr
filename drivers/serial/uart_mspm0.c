@@ -38,6 +38,7 @@ struct uart_mspm0_data {
 #ifdef CONFIG_UART_INTERRUPT_DRIVEN
 	uart_irq_callback_user_data_t cb; /* Callback function pointer */
 	void *cb_data;                    /* Callback function arg */
+	DL_UART_IIDX pending_interrupt;   /* Store interrupt for irq callbacks */
 #endif                                    /* CONFIG_UART_INTERRUPT_DRIVEN */
 };
 
@@ -135,10 +136,8 @@ static void uart_mspm0_irq_tx_disable(const struct device *dev)
 
 static int uart_mspm0_irq_tx_ready(const struct device *dev)
 {
-	const struct uart_mspm0_config *config = dev->config;
-
-	return (DL_UART_Main_getEnabledInterruptStatus(
-		config->regs, DL_UART_MAIN_INTERRUPT_TX)) ? 0 : 1;
+	struct uart_mspm0_data *data = dev->data;
+	return data->pending_interrupt & (DL_UART_IIDX_TX | DL_UART_IIDX_EOT_DONE) ? 1 : 0;
 }
 
 static void uart_mspm0_irq_rx_enable(const struct device *dev)
@@ -164,18 +163,13 @@ static int uart_mspm0_irq_tx_complete(const struct device *dev)
 
 static int uart_mspm0_irq_rx_ready(const struct device *dev)
 {
-	const struct uart_mspm0_config *config = dev->config;
-
-	return (DL_UART_Main_getEnabledInterruptStatus(
-		config->regs, UART_MSPM0_RX_INTERRUPTS)) ? 1 : 0;
+	struct uart_mspm0_data *data = dev->data;
+	return data->pending_interrupt & DL_UART_IIDX_RX ? 1 : 0;
 }
 
 static int uart_mspm0_irq_is_pending(const struct device *dev)
 {
-	const struct uart_mspm0_config *config = dev->config;
-
-	return (DL_UART_Main_getEnabledInterruptStatus(config->regs,
-		UART_MSPM0_RX_INTERRUPTS | UART_MSPM0_TX_INTERRUPTS)) ? 1 : 0;
+	return uart_mspm0g3xxx_irq_tx_ready(dev) || uart_mspm0g3xxx_irq_rx_ready(dev);
 }
 
 static int uart_mspm0_irq_update(const struct device *dev)
@@ -206,21 +200,16 @@ static void uart_mspm0_isr(const struct device *dev)
 	const struct uart_mspm0_config *config = dev->config;
 	struct uart_mspm0_data *const dev_data = dev->data;
 
-	int int_status = DL_UART_Main_getEnabledInterruptStatus(config->regs,
-		UART_MSPM0_RX_INTERRUPTS | UART_MSPM0_TX_INTERRUPTS);
+	/* pending interrupt will be used by the provided callback */
+	dev_data->pending_interrupt = DL_UART_getPendingInterrupt(config->regs);
 
 	/* Perform callback if defined */
 	if (dev_data->cb) {
 		dev_data->cb(dev, dev_data->cb_data);
 	}
 
-	/*
-	 * Clear interrupts only after cb called, as Zephyr UART clients expect
-	 * to check interrupt status during the callback.
-	 */
-
-	DL_UART_Main_clearInterruptStatus(config->regs, int_status);
-
+	/* clear in case someone accidentally calls the irq methods outside of the ISR */
+	dev_data->pending_interrupt = DL_UART_IIDX_NO_INTERRUPT;
 }
 
 #define MSP_UART_IRQ_REGISTER(index)	\

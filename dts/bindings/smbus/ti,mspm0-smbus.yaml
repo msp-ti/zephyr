@@ -1,0 +1,17 @@
+# Copyright (c) 2024 Texas Instruments
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+    TI MSPM0 SMBUS implementation, put on top of a
+    capable I2C peripheral in order to follow the SMBUS protocol as either
+    a controller or a target
+
+compatible: "ti,mspm0-smbus"
+
+include: base.yaml
+
+properties: 
+  i2c: 
+    type: phandle
+    required: true
+    description: The underlying I2C instance

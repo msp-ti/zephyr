@@ -313,6 +313,15 @@ config LINKER_LAST_SECTION_ID_PATTERN
 	  be used.
 	  The size of the pattern must not exceed 4 bytes.
 
+config LINKER_LAST_SECTION_ALIGN_8
+	bool "Aligns the last section ID by 8"
+	default n
+	depends on LINKER_LAST_SECTION_ID
+	help
+	  If enabled, the last section will be aligned by 8. This is used to ensure
+	  the binary can be flashed onto devices which require this alignment, such
+	  as the TI MSPM0G3XXX devices.
+
 config LINKER_USE_NO_RELAX
 	bool
 	help

@@ -9,13 +9,22 @@
 
 #include <ti/driverlib/driverlib.h>
 
-#define ULPCLK_DIV CONCAT(DL_SYSCTL_ULPCLK_DIV_, DT_PROP(DT_NODELABEL(clkmux), uclk_div))
 
 #if DT_NODE_HAS_STATUS(DT_NODELABEL(pll), okay)
 #define MSPM0_PLL_ENABLED 1
 #endif
 
+#if MSPM0_PLL_ENABLED
 static const DL_SYSCTL_SYSPLLConfig clock_mspm0_cfg_syspll;
+#endif
+
+#if ((DT_PROP(DT_NODELABEL(clkmux),uclk_div)) != 0)
+#define MSPM0_ULPCLK_DIV_EXISTS 1
+#endif
+
+#if MSPM0_ULPCLK_DIV_EXISTS
+#define ULPCLK_DIV CONCAT(DL_SYSCTL_ULPCLK_DIV_, DT_PROP(DT_NODELABEL(clkmux), uclk_div))
+#endif
 
 static int clock_mspm0_on(const struct device *dev, clock_control_subsys_t sys)
 {
@@ -44,8 +53,12 @@ static int clock_mspm0_get_rate(const struct device *dev, clock_control_subsys_t
 		*rate = 32768;
 		break;
 	case MSPM0_CLOCK_BUS_ULPCLK:
+#if MSPM0_ULPCLK_DIV_EXISTS
 		*rate = CONFIG_SYS_CLOCK_HW_CYCLES_PER_SEC /
 			DT_PROP(DT_NODELABEL(clkmux), uclk_div);
+#else
+		*rate = CONFIG_SYS_CLOCK_HW_CYCLES_PER_SEC;
+#endif
 		break;
 	case MSPM0_CLOCK_BUS_MCLK:
 		*rate = CONFIG_SYS_CLOCK_HW_CYCLES_PER_SEC;
@@ -82,11 +95,17 @@ static int clock_mspm0_init(const struct device *dev)
 	/* setup clocks based on specific rates */
 	DL_SYSCTL_setSYSOSCFreq(DL_SYSCTL_SYSOSC_FREQ_BASE);
 
+
+#if MSPM0_ULPCLK_DIV_EXISTS
+	DL_SYSCTL_setULPCLKDivider(ULPCLK_DIV);
+#endif
+
+
+#if MSPM0_PLL_ENABLED
 	DL_SYSCTL_configSYSPLL((DL_SYSCTL_SYSPLLConfig *)&clock_mspm0_cfg_syspll);
 
-	DL_SYSCTL_setULPCLKDivider(ULPCLK_DIV);
 	DL_SYSCTL_setMCLKSource(SYSOSC, HSCLK, DL_SYSCTL_HSCLK_SOURCE_SYSPLL);
-
+#endif /* MSPM0_PLL_ENABLED */
 	return 0;
 }
 

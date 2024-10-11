@@ -3,8 +3,8 @@
 #include <arm/armv6-m.dtsi>
 #include <zephyr/dt-bindings/gpio/gpio.h>
 #include <zephyr/dt-bindings/i2c/i2c.h>
-#include <zephyr/dt-bindings/adc/adc.h>
-#include <zephyr/dt-bindings/adc/mspm0_adc.h>
+#include <zephyr/dt-bindings/clock/mspm0_clock.h>
+#include <freq.h>
 
 / {
 
@@ -21,15 +21,32 @@
 	sram0: memory@20200000 {
 		compatible = "mmio-sram";
 	};
-
-	flash0: serial-flash@0 {
-		compatible = "serial-flash";
-	};
-
+	
 	sysclk: system-clock {
 		compatible = "fixed-clock";
 		clock-frequency = <32000000>;
 		#clock-cells = <0>;
+	};
+
+	clkmux: clock-controller {
+		compatible = "ti,mspm0-clock-mux";
+		mclk-div = <1>;
+		uclk-div = <0>;
+		#clock-cells = <1>;
+	};
+
+	clocks: clocks {
+		sysosc: sysosc {
+			compatible = "ti,mspm0-oscillator";
+			clock-frequency = <32000000>;
+			#clock-cells = <1>;
+		};
+
+		lfosc: lfosc {
+			compatible = "ti,mspm0-oscillator";
+			clock-frequency = <32678>;
+			#clock-cells = <1>;
+		};
 	};
 
 	soc {
@@ -82,13 +99,22 @@
 			compatible = "ti,mspm0-uart";
 			reg = <0x40108000 0x2000>;
 			interrupts = <15 0>;
-			clocks = <&sysclk>;
+			clocks = <&clkmux MSPM0_CLOCK_BUS_ULPCLK>;
+			status = "disabled";
+		};
+
+		uart1: uart@40100000 {
+			compatible = "ti,mspm0-uart";
+			reg = <0x40100000 0x2000>;
+			interrupts = <13 0>;
+			current-speed = <115200>;
+			clocks = <&clkmux MSPM0_CLOCK_BUS_ULPCLK>;
 			status = "disabled";
 		};
 
 		i2c0: i2c@400f0000 {
 			compatible = "ti,mspm0-i2c";
-			clocks = <&sysclk>;
+			clocks = <&clkmux MSPM0_CLOCK_BUS_ULPCLK>;
 			clock-frequency = <I2C_BITRATE_STANDARD>;
 			#address-cells = <1>;
 			#size-cells = <0>;
@@ -99,7 +125,7 @@
 
 		i2c1: i2c@400f2000 {
 			compatible = "ti,mspm0-i2c";
-			clocks = <&sysclk>;
+			clocks = <&clkmux MSPM0_CLOCK_BUS_ULPCLK>;
 			clock-frequency = <I2C_BITRATE_STANDARD>;
 			#address-cells = <1>;
 			#size-cells = <0>;

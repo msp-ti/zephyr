@@ -168,7 +168,7 @@ SECTIONS
 	 * after .gnu.linkonce.t.*
 	 */
 	*(.glue_7t) *(.glue_7) *(.vfp11_veneer) *(.v4_bx)
-	. = ALIGN(4);
+	. = ALIGN(8);
 
 	} GROUP_LINK_IN(ROMABLE_REGION)
 
@@ -231,7 +231,7 @@ SECTIONS
 	 * generally is not an issue, since modern ROM and FLASH memory is
 	 * usually 4k aligned.
 	 */
-	. = ALIGN(4);
+	. = ALIGN(8);
 	} GROUP_LINK_IN(ROMABLE_REGION)
 
 #include <zephyr/linker/cplusplus-rom.ld>
@@ -295,7 +295,7 @@ SECTIONS
          * For performance, BSS section is assumed to be 4 byte aligned and
          * a multiple of 4 bytes
          */
-        . = ALIGN(4);
+        . = ALIGN(8);
 	__bss_start = .;
 	__kernel_ram_start = .;
 
@@ -312,7 +312,7 @@ SECTIONS
          * As memory is cleared in words only, it is simpler to ensure the BSS
          * section ends on a 4 byte boundary. This wastes a maximum of 3 bytes.
 		 */
-	__bss_end = ALIGN(4);
+	__bss_end = ALIGN(8);
 	} GROUP_DATA_LINK_IN(RAMABLE_REGION, RAMABLE_REGION)
 
 #include <zephyr/linker/common-noinit.ld>
@@ -364,7 +364,7 @@ SECTIONS
          * For performance, BSS section is assumed to be 4 byte aligned and
          * a multiple of 4 bytes
          */
-        . = ALIGN(4);
+        . = ALIGN(8);
 	__bss_start = .;
 	__kernel_ram_start = .;
 
@@ -381,7 +381,7 @@ SECTIONS
          * As memory is cleared in words only, it is simpler to ensure the BSS
          * section ends on a 4 byte boundary. This wastes a maximum of 3 bytes.
 		 */
-	__bss_end = ALIGN(4);
+	__bss_end = ALIGN(8);
 	} GROUP_DATA_LINK_IN(RAMABLE_REGION, RAMABLE_REGION)
 
     SECTION_PROLOGUE(_NOINIT_SECTION_NAME,(NOLOAD),)
@@ -410,7 +410,7 @@ SECTIONS
 #if DT_NODE_HAS_STATUS(DT_CHOSEN(zephyr_itcm), okay)
 GROUP_START(ITCM)
 
-	SECTION_PROLOGUE(_ITCM_SECTION_NAME,,SUBALIGN(4))
+	SECTION_PROLOGUE(_ITCM_SECTION_NAME,,SUBALIGN(8))
 	{
 		__itcm_start = .;
 		*(.itcm)
@@ -432,7 +432,7 @@ GROUP_END(ITCM)
 #if DT_NODE_HAS_STATUS(DT_CHOSEN(zephyr_dtcm), okay)
 GROUP_START(DTCM)
 
-	SECTION_PROLOGUE(_DTCM_BSS_SECTION_NAME, (NOLOAD),SUBALIGN(4))
+	SECTION_PROLOGUE(_DTCM_BSS_SECTION_NAME, (NOLOAD),SUBALIGN(8))
 	{
 		__dtcm_start = .;
 		__dtcm_bss_start = .;
@@ -441,7 +441,7 @@ GROUP_START(DTCM)
 		__dtcm_bss_end = .;
 	} GROUP_LINK_IN(DTCM)
 
-	SECTION_PROLOGUE(_DTCM_NOINIT_SECTION_NAME, (NOLOAD),SUBALIGN(4))
+	SECTION_PROLOGUE(_DTCM_NOINIT_SECTION_NAME, (NOLOAD),SUBALIGN(8))
 	{
 		__dtcm_noinit_start = .;
 		*(.dtcm_noinit)
@@ -449,7 +449,7 @@ GROUP_START(DTCM)
 		__dtcm_noinit_end = .;
 	} GROUP_LINK_IN(DTCM)
 
-	SECTION_PROLOGUE(_DTCM_DATA_SECTION_NAME,,SUBALIGN(4))
+	SECTION_PROLOGUE(_DTCM_DATA_SECTION_NAME,,SUBALIGN(8))
 	{
 		__dtcm_data_start = .;
 		*(.dtcm_data)
@@ -508,6 +508,7 @@ SECTION_PROLOGUE(.last_section,,)
    * region data usage match. */
   LONG(CONFIG_LINKER_LAST_SECTION_ID_PATTERN)
 #endif
+	. = ALIGN(8);
 } GROUP_LINK_IN(ROMABLE_REGION)
 
 /* To provide the image size as a const expression,

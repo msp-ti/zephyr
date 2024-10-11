@@ -20,6 +20,7 @@
 	chosen {
 		zephyr,sram = &sram0;
 		zephyr,flash = &flash0;
+		zephyr,flash-controller= &flashctl;
 		zephyr,console = &uart0;
 		zephyr,shell-uart = &uart0;
 	};
@@ -79,3 +80,23 @@
 	pinctrl-0 = <&uart0_tx_pa10 &uart0_rx_pa11>;
 	pinctrl-names = "default";
 };
+
+&i2c1 {
+	pinctrl-0 = <&i2c1_scl_pa17_pull_up &i2c1_sda_pa18_pull_up>;
+	pinctrl-names = "default";
+	status = "disabled";
+};
+
+&adc0 {
+	ti,clk-source = <MSP_ADC_CLOCK_ULPCLK>;
+	ti,clk-divider = <8>;
+	ti,clk-range = <MSP_ADC_CLOCK_RANGE_24TO32>;
+	vref-mv = <2500>;
+	pinctrl-0 = <&adc0_pa25>;
+	pinctrl-names = "default";
+	status = "disabled";
+};
+
+&wdt0 {
+	status = "disabled";
+}; 

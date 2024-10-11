@@ -11,5 +11,7 @@ flash: 128
 supported:
   - gpio
   - pinctrl
+  - i2c
   - uart
+  - adc
 vendor: ti

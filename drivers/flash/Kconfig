@@ -169,6 +169,8 @@ source "drivers/flash/Kconfig.cc13xx_cc26xx"
 
 source "drivers/flash/Kconfig.at45"
 
+source "drivers/flash/Kconfig.mspm0"
+
 source "drivers/flash/Kconfig.esp32"
 
 source "drivers/flash/Kconfig.it8xxx2"

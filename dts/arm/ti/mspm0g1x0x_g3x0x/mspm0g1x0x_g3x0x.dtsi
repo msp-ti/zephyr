@@ -7,6 +7,225 @@
 #include <freq.h>
 
 / {
+
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		cpu0: cpu@0 {
+			compatible = "arm,cortex-m0plus";
+			reg = <0>;
+		};
+	};
+
+	sram0: memory@20200000 {
+		compatible = "mmio-sram";
+	};
+
+	sysclk: system-clock {
+		compatible = "fixed-clock";
+		clock-frequency = <DT_FREQ_M(32)>;
+		#clock-cells = <0>;
+	};
+
+	clkmux: clock-controller {
+		compatible = "ti,mspm0-clock-mux";
+		mclk-div = <1>;
+		uclk-div = <1>;
+		#clock-cells = <1>;
+	};
+
+	clocks: clocks {
+		sysosc: sysosc {
+			compatible = "ti,mspm0-oscillator";
+			clock-frequency = <32000000>;
+			#clock-cells = <1>;
+		};
+
+		lfosc: lfosc {
+			compatible = "ti,mspm0-oscillator";
+			clock-frequency = <32678>;
+			#clock-cells = <1>;
+		};
+
+		pll: pll {
+			compatible = "ti,mspm0-pll";
+			clocks = <&sysosc 0>;
+			p-div = <2>;
+			q-div = <5>;
+			clk1-div = <2>;
+			clk2x-div = <2>;
+			#clock-cells = <0>;
+			status = "okay";
+		};
+	};
+
+	soc {
+
+		pinctrl: pin-controller@400a0000{
+			compatible = "ti,mspm0-pinctrl";
+			#address-cells = <1>;
+			#size-cells = <1>;
+			reg = <0x400a0000 0x4000>;
+
+			gpioa: gpio@400a0000 {
+				compatible = "ti,mspm0-gpio";
+				reg = <0x400a0000 0x2000>;
+				interrupts = <1 0>;
+				status = "disabled";
+				gpio-controller;
+				#gpio-cells = <2>;
+			};
+
+			gpiob: gpio@400a2000 {
+				compatible = "ti,mspm0-gpio";
+				reg = <0x400a2000 0x2000>;
+				interrupts = <1 0>;
+				status = "disabled";
+				gpio-controller;
+				#gpio-cells = <2>;
+			};
+
+		};
+
+		flashctl: flashctl@400cd000{
+			compatible = "ti,mspm0-flash-controller";
+			reg = <0x400cd000 0x2000>;
+			status = "okay";
+
+			#address-cells = <1>;
+			#size-cells = <1>;
+		};
+
+		uart0: uart@40108000 {
+			compatible = "ti,mspm0-uart";
+			reg = <0x40108000 0x2000>;
+			interrupts = <15 0>;
+			current-speed = <115200>;
+			clocks = <&clkmux MSPM0_CLOCK_BUS_ULPCLK>;
+			status = "disabled";
+		};
+
+		uart1: uart@40100000 {
+			compatible = "ti,mspm0-uart";
+			reg = <0x40100000 0x2000>;
+			interrupts = <13 0>;
+			current-speed = <115200>;
+			clocks = <&clkmux MSPM0_CLOCK_BUS_ULPCLK>;
+			status = "disabled";
+		};
+
+		uart2: uart@40102000 {
+			compatible = "ti,mspm0-uart";
+			reg = <0x40102000 0x2000>;
+			interrupts = <14 0>;
+			current-speed = <115200>;
+			clocks = <&clkmux MSPM0_CLOCK_BUS_ULPCLK>;
+			status = "disabled";
+		};
+
+		i2c0: i2c@400f0000 {
+			compatible = "ti,mspm0-i2c";
+			clocks = <&clkmux MSPM0_CLOCK_BUS_ULPCLK>;
+			clock-frequency = <I2C_BITRATE_STANDARD>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x400f0000 0x2000>;
+			interrupts = <24 0>;
+			status = "disabled";
+		};
+
+		i2c1: i2c@400f2000 {
+			compatible = "ti,mspm0-i2c";
+			clocks = <&clkmux MSPM0_CLOCK_BUS_ULPCLK>;
+			clock-frequency = <I2C_BITRATE_STANDARD>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x400f2000 0x2000>;
+			interrupts = <25 0>;
+			status = "disabled";
+		};
+
+		adc0: adc@40000000 {
+			compatible = "ti,mspm0-adc12";
+			reg = <0x40000000 0x1000>;
+			interrupts = <4 0>;
+			status = "disabled";
+			#io-channel-cells = <1>;
+		};
+
+		adc1: adc@40002000 {
+			compatible = "ti,mspm0-adc12";
+			reg = <0x40002000 0x1000>;
+			interrupts = <5 0>;
+			status = "disabled";
+			#io-channel-cells = <1>;
+		};
+
+		canfd0: can@40508000 {
+			compatible = "ti,mspm0-canfd";
+			reg =  <0x40508000 0x8000>, <0x4050F000 0x1000>, <0x40508000 0x400>;
+			reg-names = "ti_canfd", "m_can", "message_ram";
+			interrupts = <6 0>;
+			clocks = <&sysclk>;
+			bosch,mram-cfg = <0x0 20 8 3 3 0 3 3>;
+			/*
+			 * # 20 11-bit filter elements = 20x4  = 80B
+			 * # 8  29-bit filter elements =  8x8  = 64B
+			 * # 3 RX FIFO0 elements =        3x72 = 216B
+			 * # 3 RX FIFO1 elements =        3x72 = 216B
+			 * # 0 RX buffer elemets =        0x72 = 0B
+			 * # 3 TX FIFO elements =         3x8  = 24B
+			 * # 3 TX Buffer elements =       3x72 = 216B
+			 * # Total RAM                         = 816B
+			 */
+			status = "disabled";
+			sample-point = <875>;
+		};
+
+		wdt0: wdt0@40080000 {
+			compatible = "ti,mspm0-watchdog";
+			reg = <0x40080000 0x2000>;
+			status = "disabled";
+			ti,watchdog-reset-action = <1>;
+		};
+
+		wdt1: wdt1@40082000 {
+			compatible = "ti,mspm0-watchdog";
+			reg = <0x40082000 0x2000>;
+			status = "disabled";
+			ti,watchdog-reset-action = <0>;
+		};
+
+
+	};
+
+	smbus0: smbus0 {
+		compatible = "ti,mspm0-smbus";
+		i2c = <&i2c0>;
+		status = "disabled";
+	};
+
+	smbus1: smbus1 {
+		compatible = "ti,mspm0-smbus";
+		i2c = <&i2c1>;
+		status = "disabled";
+	};
+
+};
+
+&nvic {
+	arm,num-irq-priority-bits = <2>;
+};
+/* SPDX-License-Identifier: Apache-2.0 */
+
+#include <arm/armv6-m.dtsi>
+#include <zephyr/dt-bindings/gpio/gpio.h>
+#include <zephyr/dt-bindings/i2c/i2c.h>
+#include <zephyr/dt-bindings/clock/mspm0_clock.h>
+#include <freq.h>
+
+/ {
 	cpus {
 		#address-cells = <1>;
 		#size-cells = <0>;

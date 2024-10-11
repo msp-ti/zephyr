@@ -85,7 +85,6 @@
 				gpio-controller;
 				#gpio-cells = <2>;
 			};
-
 		};
 
 		flashctl: flashctl@400cd000{
@@ -238,10 +237,6 @@
 
 	sram0: memory@20200000 {
 		compatible = "mmio-sram";
-	};
-
-	flash0: serial-flash@0 {
-		compatible = "serial-flash";
 	};
 
 	sysclk: system-clock {

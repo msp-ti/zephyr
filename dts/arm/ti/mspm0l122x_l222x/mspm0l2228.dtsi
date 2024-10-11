@@ -1,0 +1,4 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+
+#include <ti/mspm0l122x_l222x/mspm0l122x_l222x.dtsi>
+#include <ti/mspm0l122x_l222x/mspm0lxxx8.dtsi>

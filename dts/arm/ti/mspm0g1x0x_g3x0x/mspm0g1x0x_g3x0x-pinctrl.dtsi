@@ -2,13 +2,13 @@
 
 &pinctrl {
 
-	/omit-if-no-ref/ i2c0_scl_pa1_pull_up: i2c0_scl_pa1_pull_up {
+	/omit-if-no-ref/ i2c0_scl_pa1: i2c0_scl_pa1 {
 		pinmux = <MSP_PINMUX(2,MSPM0_PIN_FUNCTION_3)>;
 		input-enable;
 		drive-open-drain;
 	};
 
-	/omit-if-no-ref/ i2c0_sda_pa0_pull_up: i2c0_sda_pa0_pull_up {
+	/omit-if-no-ref/ i2c0_sda_pa0: i2c0_sda_pa0 {
 		pinmux = <MSP_PINMUX(1,MSPM0_PIN_FUNCTION_3)>;
 		input-enable;
 		drive-open-drain;

@@ -108,7 +108,7 @@ struct i2c_target_callbacks i2c_callbacks_data = {
 
 struct i2c_target_config i2c_target_cfg_data = {
 	.flags = 0x00, /* doesn't support 10-bit addressing. */
-	.address = 0x48,
+	.address = 0x32,
 	.callbacks = &i2c_callbacks_data,
 };
 

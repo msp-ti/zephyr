@@ -11,6 +11,12 @@ family:
     - name: mspm0g3106
     - name: mspm0g1506
     - name: mspm0g1106
+  - name: mspm0gx51x
+    socs:
+    - name: mspm0g1518
+    - name: mspm0g1519
+    - name: mspm0g3518
+    - name: mspm0g3519
   - name: mspm0l122x_l222x
     socs:
     - name: mspm0l2228

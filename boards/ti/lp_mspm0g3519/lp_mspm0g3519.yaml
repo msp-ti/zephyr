@@ -1,0 +1,17 @@
+identifier: lp_mspm0g3519
+name: LP_MSPM0G3519
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+  - xtools
+ram: 128
+flash: 512
+supported:
+  - gpio
+  - pinctrl
+  - i2c
+  - uart
+  - adc
+vendor: ti

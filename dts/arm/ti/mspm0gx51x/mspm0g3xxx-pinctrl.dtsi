@@ -3,12 +3,12 @@
 &pinctrl {
 
 	can0_rx_pa13: can0_rx_pa13 {
-		pinmux = <MSP_PINMUX(35,MSPM0_PIN_FUNCTION_12)>;
+		pinmux = <MSP_PINMUX(35,MSPM0_PIN_FUNCTION_6)>;
 		input-enable;
 	};
 
 	can0_tx_pa12: can0_tx_pa12 {
-		pinmux = <MSP_PINMUX(34,MSPM0_PIN_FUNCTION_12)>;
+		pinmux = <MSP_PINMUX(34,MSPM0_PIN_FUNCTION_6)>;
 	};
 
 };

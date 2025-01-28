@@ -8,7 +8,7 @@
 #include <zephyr/dt-bindings/adc/mspm0_adc.h>
 
 / {
-	model = "TI LP_MSPM0G3507/MSPM0G3507";
+	model = "TI LP_MSPM0G3507";
 	compatible = "ti,mspm0g3507";
 
 	aliases {
@@ -102,7 +102,7 @@
 	pinctrl-0 = <&spi1_sclk_pb9 &spi1_pico_pb8 &spi1_poci_pb7 &spi1_cs0_pb6>;
 	pinctrl-names = "default";
 	cs-gpios = <&gpiob 6 GPIO_ACTIVE_LOW>;
-	status = "okay";
+	status = "disabled";
 };
 
 &wdt0 {

@@ -92,6 +92,13 @@
 	status = "disabled";
 };
 
+&spi1 {
+	pinctrl-0 = <&spi1_sclk_pa17 &spi1_pico_pb15 &spi1_poci_pb21 &spi1_cs0_pb20>;
+	pinctrl-names = "default";
+	cs-gpios = <&gpiob 20 GPIO_ACTIVE_LOW>;
+	status = "disabled";
+};
+
 &adc0 {
 	ti,clk-source = <MSP_ADC_CLOCK_ULPCLK>;
 	ti,clk-divider = <8>;

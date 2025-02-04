@@ -14,43 +14,35 @@
 
 #define SPI_1_NODE	DT_NODELABEL(spi1)
 
-/*
- * writes 5 9bit words, you can check the output with a logic analyzer
- */
-void test_basic_write_9bit_words(const struct device *dev,
-				 struct spi_cs_control *cs)
+uint8_t rxBuffer[64];
+uint32_t rxBufferPtr = 0;
+uint8_t buff[3] = { 0x11, 0x22, 0x33};
+uint8_t rxdata[3];
+int transactionFlag = 0;
+
+
+void spi_callback(const struct device * dev, int status, void * userdata)
 {
-	struct spi_config config;
+	for(int i = 0; i < 3; i++){
+		rxBuffer[rxBufferPtr] = rxdata[i];
+		rxBufferPtr++;
+	}
 
-	config.frequency = 125000;
-	config.operation = SPI_OP_MODE_MASTER | SPI_WORD_SET(8); //SPI_MODE_LOOP
-	config.slave = 0;
-	config.cs = *cs;
-
-	uint16_t buff[5] = { 0x0101, 0x00ff, 0x00a5, 0x0000, 0x0102};
-	int len = 5 * sizeof(buff[0]);
-
-	struct spi_buf tx_buf = { .buf = buff, .len = len };
-	struct spi_buf_set tx_bufs = { .buffers = &tx_buf, .count = 1 };
-
-	int ret = spi_write(dev, &config, &tx_bufs);
-
-	printf("basic_write_9bit_words; ret: %d\n", ret);
-	printf(" wrote %04x %04x %04x %04x %04x\n",
-		buff[0], buff[1], buff[2], buff[3], buff[4]);
+	transactionFlag = 1;
 }
+
 void test_8bit_xfer(const struct device *dev, struct spi_cs_control *cs)
 {
 	struct spi_config config;
 
-	config.frequency = 1000000;
+	config.frequency = 100000;
 	config.operation = SPI_OP_MODE_MASTER | SPI_WORD_SET(8);
 	config.slave = 0;
 	config.cs = *cs;
 
-	enum { datacount = 5 };
-	uint8_t buff[datacount] = { 0x01, 0x02, 0x03, 0x04, 0x05};
-	uint8_t rxdata[datacount];
+	int datacount = 3;
+	// uint8_t buff[datacount] = { 0x11, 0x22, 0x33};
+	// uint8_t rxdata[datacount];
 
 	struct spi_buf tx_buf[1] = {
 		{.buf = buff, .len = datacount},
@@ -62,13 +54,19 @@ void test_8bit_xfer(const struct device *dev, struct spi_cs_control *cs)
 	struct spi_buf_set tx_set = { .buffers = tx_buf, .count = 1 };
 	struct spi_buf_set rx_set = { .buffers = rx_buf, .count = 1 };
 
-	int ret = spi_transceive(dev, &config, &tx_set, &rx_set);
+	int ret = spi_transceive_cb(dev, &config, &tx_set, &rx_set, spi_callback, NULL);
 
-	printf("8bit_loopback_partial; ret: %d\n", ret);
-	printf(" tx (i)  : %02x %02x %02x %02x %02x\n",
-	       buff[0], buff[1], buff[2], buff[3], buff[4]);
-	printf(" rx (i)  : %02x %02x %02x %02x %02x\n",
-	       rxdata[0], rxdata[1], rxdata[2], rxdata[3], rxdata[4]);
+	printf("8bit_partial; ret: %d\n", ret);
+	printf(" tx (i)  : %02x %02x %02x\n",
+	       buff[0], buff[1], buff[2]);
+
+	while(transactionFlag == 0){
+		k_usleep(20);
+	}
+
+	printf("8bit finished\n");
+	printf(" rx (i)  : %02x %02x %02x\n",
+	    	rxBuffer[0], rxBuffer[1], rxBuffer[2]);
 }
 
 int main(void)
@@ -92,11 +90,11 @@ int main(void)
 	 */
 	while (1)
 	{
-		//test_basic_write_9bit_words(dev, &cs_ctrl);
-		k_sleep(K_MSEC(200));
+		// test_basic_write_9bit_words(dev, &cs_ctrl);
+		// k_sleep(K_MSEC(200));
 
+		k_sleep(K_MSEC(1000));
 		test_8bit_xfer(dev, &cs_ctrl);
-		k_sleep(K_SEC(200));
 	}
 	return 0;
 }

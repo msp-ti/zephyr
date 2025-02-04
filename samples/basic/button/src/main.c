@@ -18,6 +18,7 @@
 
 #define SLEEP_TIME_MS	1
 
+#define ZEPHYR_USER_NODE DT_PATH(zephyr_user)
 /*
  * Get button configuration from the devicetree sw0 alias. This is mandatory.
  */
@@ -25,16 +26,19 @@
 #if !DT_NODE_HAS_STATUS_OKAY(SW0_NODE)
 #error "Unsupported board: sw0 devicetree alias is not defined"
 #endif
+
 static const struct gpio_dt_spec button = GPIO_DT_SPEC_GET_OR(SW0_NODE, gpios,
 							      {0});
 static struct gpio_callback button_cb_data;
+
+const struct gpio_dt_spec reset = GPIO_DT_SPEC_GET(ZEPHYR_USER_NODE, reset_gpios);
+const struct gpio_dt_spec start = GPIO_DT_SPEC_GET(ZEPHYR_USER_NODE, start_gpios);
 
 /*
  * The led0 devicetree alias is optional. If present, we'll use it
  * to turn on the LED whenever the button is pressed.
  */
-static struct gpio_dt_spec led = GPIO_DT_SPEC_GET_OR(DT_ALIAS(led0), gpios,
-						     {0});
+const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
 
 void button_pressed(const struct device *dev, struct gpio_callback *cb,
 		    uint32_t pins)
@@ -51,6 +55,13 @@ int main(void)
 		       button.port->name);
 		return 0;
 	}
+
+	if (!gpio_is_ready_dt(&reset)) {
+		printk("Error: reset not ready\n");
+		return 0;
+	}
+
+	ret = gpio_pin_configure_dt(&reset, GPIO_OUTPUT);
 
 	ret = gpio_pin_configure_dt(&button, GPIO_INPUT);
 	if (ret != 0) {
@@ -74,14 +85,12 @@ int main(void)
 	if (led.port && !gpio_is_ready_dt(&led)) {
 		printk("Error %d: LED device %s is not ready; ignoring it\n",
 		       ret, led.port->name);
-		led.port = NULL;
 	}
 	if (led.port) {
 		ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT);
 		if (ret != 0) {
 			printk("Error %d: failed to configure LED device %s pin %d\n",
 			       ret, led.port->name, led.pin);
-			led.port = NULL;
 		} else {
 			printk("Set up LED at %s pin %d\n", led.port->name, led.pin);
 		}

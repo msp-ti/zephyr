@@ -1,0 +1,13 @@
+#include <zephyr/dt-bindings/gpio/gpio.h>
+
+/ {
+	zephyr,user {
+		reset-gpios = <&gpiob 0 GPIO_ACTIVE_HIGH>;
+		start-gpios = <&gpiob 2 GPIO_ACTIVE_HIGH>;
+		drdy-gpios = <&gpiob 3 GPIO_ACTIVE_HIGH>;
+		en-gpios = <&gpiob 5 GPIO_ACTIVE_HIGH>;
+		done-gpios = <&gpiob 6 GPIO_ACTIVE_HIGH>;
+	};
+
+};
+

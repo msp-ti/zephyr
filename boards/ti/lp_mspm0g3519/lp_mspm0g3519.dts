@@ -97,7 +97,7 @@
 	pinctrl-names = "default";
 	cs-gpios = <&gpiob 20 GPIO_ACTIVE_LOW>;
 	status = "disabled";
-}
+};
 
 &adc0 {
 	ti,clk-source = <MSP_ADC_CLOCK_ULPCLK>;

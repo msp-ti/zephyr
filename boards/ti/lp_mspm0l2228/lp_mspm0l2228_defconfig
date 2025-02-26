@@ -2,9 +2,6 @@
 
 CONFIG_CORTEX_M_SYSTICK=y
 
-# Enable i2c driver
-CONFIG_I2C=y
-
 # Enable gpio driver
 CONFIG_GPIO=y
 
@@ -14,3 +11,6 @@ CONFIG_SERIAL=y
 # Enable console
 CONFIG_CONSOLE=y
 CONFIG_UART_CONSOLE=y
+
+# Enable Clock Control
+CONFIG_CLOCK_CONTROL=y

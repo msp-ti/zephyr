@@ -22,16 +22,11 @@
 		compatible = "mmio-sram";
 	};
 
-	sysclk: system-clock {
-		compatible = "fixed-clock";
-		clock-frequency = <DT_FREQ_M(32)>;
-		#clock-cells = <0>;
-	};
-
 	clkmux: clock-controller {
 		compatible = "ti,mspm0-clock-mux";
 		mclk-div = <1>;
-		uclk-div = <1>;
+		uclk-div = <2>;
+		clock-source = <&pll>;
 		#clock-cells = <1>;
 	};
 
@@ -161,12 +156,32 @@
 			#io-channel-cells = <1>;
 		};
 
+		spi0: spi@40468000 {
+			compatible = "ti,mspm0-spi";
+			clocks = <&clkmux MSPM0_CLOCK_BUS_MCLK>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x40468000 0x2000>;
+			interrupts = <9 0>;
+			status = "disabled";
+		};
+
+		spi1: spi@4046a000 {
+			compatible = "ti,mspm0-spi";
+			reg = <0x4046a000 0x2000>;
+			clocks = <&clkmux MSPM0_CLOCK_BUS_MCLK>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			interrupts = <10 0>;
+			status = "disabled";
+		};
+
 		canfd0: can@40508000 {
 			compatible = "ti,mspm0-canfd";
 			reg =  <0x40508000 0x8000>, <0x4050F000 0x1000>, <0x40508000 0x400>;
 			reg-names = "ti_canfd", "m_can", "message_ram";
 			interrupts = <6 0>;
-			clocks = <&sysclk>;
+			clocks = <&clkmux MSPM0_CLOCK_BUS_CANCLK>;
 			bosch,mram-cfg = <0x0 20 8 3 3 0 3 3>;
 			/*
 			 * # 20 11-bit filter elements = 20x4  = 80B
@@ -216,144 +231,10 @@
 &nvic {
 	arm,num-irq-priority-bits = <2>;
 };
-/* SPDX-License-Identifier: Apache-2.0 */
 
-#include <arm/armv6-m.dtsi>
-#include <zephyr/dt-bindings/gpio/gpio.h>
-#include <zephyr/dt-bindings/i2c/i2c.h>
-#include <zephyr/dt-bindings/clock/mspm0_clock.h>
-#include <freq.h>
 
-/ {
-	cpus {
-		#address-cells = <1>;
-		#size-cells = <0>;
-
-		cpu0: cpu@0 {
-			compatible = "arm,cortex-m0plus";
-			reg = <0>;
-		};
-	};
-
-	sram0: memory@20200000 {
-		compatible = "mmio-sram";
-	};
-
-	sysclk: system-clock {
-		compatible = "fixed-clock";
-		clock-frequency = <DT_FREQ_M(32)>;
-		#clock-cells = <0>;
-	};
-
-	clkmux: clock-controller {
-		compatible = "ti,mspm0-clock-mux";
-		mclk-div = <1>;
-		uclk-div = <1>;
-		#clock-cells = <1>;
-	};
-
-	clocks: clocks {
-		sysosc: sysosc {
-			compatible = "ti,mspm0-oscillator";
-			clock-frequency = <32000000>;
-			#clock-cells = <1>;
-		};
-
-		lfosc: lfosc {
-			compatible = "ti,mspm0-oscillator";
-			clock-frequency = <32678>;
-			#clock-cells = <1>;
-		};
-
-		pll: pll {
-			compatible = "ti,mspm0-pll";
-			clocks = <&sysosc 0>;
-			p-div = <2>;
-			q-div = <5>;
-			clk1-div = <2>;
-			clk2x-div = <2>;
-			#clock-cells = <0>;
-			status = "okay";
-		};
-	};
-
-	soc {
-
-		pinctrl: pin-controller@400a0000{
-			compatible = "ti,mspm0-pinctrl";
-			#address-cells = <1>;
-			#size-cells = <1>;
-			reg = <0x400a0000 0x4000>;
-
-			gpioa: gpio@400a0000 {
-				compatible = "ti,mspm0-gpio";
-				reg = <0x400a0000 0x2000>;
-				interrupts = <1 0>;
-				status = "disabled";
-				gpio-controller;
-				#gpio-cells = <2>;
-			};
-
-			gpiob: gpio@400a2000 {
-				compatible = "ti,mspm0-gpio";
-				reg = <0x400a2000 0x2000>;
-				interrupts = <1 0>;
-				status = "disabled";
-				gpio-controller;
-				#gpio-cells = <2>;
-			};
-
-		};
-
-		uart0: uart@40108000 {
-			compatible = "ti,mspm0-uart";
-			reg = <0x40108000 0x2000>;
-			interrupts = <15 0>;
-			current-speed = <115200>;
-			clocks = <&clkmux MSPM0_CLOCK_BUS_ULPCLK>;
-			status = "disabled";
-		};
-
-		uart1: uart@40100000 {
-			compatible = "ti,mspm0-uart";
-			reg = <0x40100000 0x2000>;
-			interrupts = <13 0>;
-			current-speed = <115200>;
-			clocks = <&clkmux MSPM0_CLOCK_BUS_ULPCLK>;
-			status = "disabled";
-		};
-
-		uart2: uart@40102000 {
-			compatible = "ti,mspm0-uart";
-			reg = <0x40102000 0x2000>;
-			interrupts = <14 0>;
-			current-speed = <115200>;
-			clocks = <&clkmux MSPM0_CLOCK_BUS_ULPCLK>;
-			status = "disabled";
-		};
-
-		spi0: spi@40468000 {
-			compatible = "ti,mspm0-spi";
-			clocks = <&sysclk>;
-			#address-cells = <1>;
-			#size-cells = <0>;
-			reg = <0x40468000 0x2000>;
-			interrupts = <9 0>;
-			status = "disabled";
-		};
-
-		spi1: spi@4046a000 {
-			compatible = "ti,mspm0-spi";
-			reg = <0x4046a000 0x2000>;
-			clocks = <&sysclk>;
-			#address-cells = <1>;
-			#size-cells = <0>;			
-			interrupts = <10 0>;
-			status = "disabled";
-		};
-	};
-};
 
 &nvic {
 	arm,num-irq-priority-bits = <2>;
 };
+

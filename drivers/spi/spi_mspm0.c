@@ -51,7 +51,6 @@ struct spi_mspm0_config {
 	SPI_Regs *base;
 	const struct pinctrl_dev_config *pinctrl;
 	const DL_SPI_ClockConfig clock_config;
-	uint32_t clock_frequency;
 };
 
 struct spi_mspm0_data {
@@ -64,6 +63,14 @@ static int spi_mspm0_configure(const struct device *dev, const struct spi_config
 	struct spi_mspm0_data *const data = dev->data;
 	const struct spi_mspm0_config *const cfg = dev->config;
 	struct spi_context *ctx = &data->ctx;
+	const struct device *const clk_dev = DEVICE_DT_GET(DT_NODELABEL(clkmux));
+	uint32_t clockRate;
+
+	ret = clock_control_get_rate(clk_dev, (clock_control_subsys_t)config->clock_subsys, &clockRate);
+
+	if(ret < 0){
+		return -ENODEV;
+	}
 
 	if (spi_context_configured(ctx, spi_cfg)) {
 		/* this configuration is already in use */
@@ -75,12 +82,12 @@ static int spi_mspm0_configure(const struct device *dev, const struct spi_config
 		return -ENOTSUP;
 	}
 
-	if (spi_cfg->frequency > (cfg->clock_frequency / 2)) {
+	if (spi_cfg->frequency > (clockRate / 2)) {
 		return -EINVAL;
 	}
 
 	/* see DL_SPI_setBitRateSerialClockDivider for details */
-	uint16_t clock_scr = cfg->clock_frequency / ((2 * spi_cfg->frequency) - 1);
+	uint16_t clock_scr = clockRate / ((2 * spi_cfg->frequency) - 1);
 
 	if (!IN_RANGE(clock_scr, 0, 1023)) {
 		return -EINVAL;
@@ -282,9 +289,8 @@ static int spi_mspm0_init(const struct device *dev)
 	static struct spi_mspm0_config spi_mspm0_##inst##_cfg = {                                  \
 		.base = (SPI_Regs *)DT_INST_REG_ADDR(inst),                                        \
 		.pinctrl = PINCTRL_DT_INST_DEV_CONFIG_GET(inst),                                   \
-		.clock_config = {.clockSel = DL_SPI_CLOCK_BUSCLK,                                  \
+		.clock_config = {.clockSel = (DT_INST_CLOCKS_CELL(index, bus) & MSPM0_CLOCK_SEL_MASK),                                  \
 				 .divideRatio = DL_SPI_CLOCK_DIVIDE_RATIO_1},                      \
-		.clock_frequency = DT_PROP(DT_INST_CLOCKS_CTLR(inst), clock_frequency),            \
 	};                                                                                         \
                                                                                                    \
 	static struct spi_mspm0_data spi_mspm0_##inst##_data = {                                   \

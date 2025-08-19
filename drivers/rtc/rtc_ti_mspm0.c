@@ -15,6 +15,8 @@
 #include <zephyr/kernel.h>
 #include <zephyr/sys/util_macro.h>
 #include <zephyr/sys/__assert.h>
+#include <zephyr/pm/policy.h>
+#include <zephyr/pm/device.h>
 #include "rtc_utils.h"
 #include <ti/driverlib/dl_rtc_common.h>
 
@@ -412,6 +414,27 @@ static int rtc_ti_mspm0_init(const struct device *dev)
 	return 0;
 }
 
+#ifdef CONFIG_PM_DEVICE
+static int rtc_ti_mspm0_pm_action(const struct device *dev,
+			       enum pm_device_action action)
+{
+	switch (action) {
+	case PM_DEVICE_ACTION_RESUME:
+		return 0;
+	case PM_DEVICE_ACTION_SUSPEND:
+		return 0;
+	case PM_DEVICE_ACTION_TURN_OFF:
+		return 0;
+	case PM_DEVICE_ACTION_TURN_ON:
+		return 0;
+	default:
+		return -ENOTSUP;
+	}
+
+	return 0;
+}
+#endif
+
 static DEVICE_API(rtc, rtc_ti_mspm0_driver_api) = {
 	.set_time		= rtc_ti_mspm0_set_time,
 	.get_time		= rtc_ti_mspm0_get_time,
@@ -441,8 +464,10 @@ static DEVICE_API(rtc, rtc_ti_mspm0_driver_api) = {
 		IF_ENABLED(CONFIG_RTC_ALARM,					\
 		(.irq_config_func = ti_mspm0_config_irq_##n,))			\
 	};									\
+													\
+	PM_DEVICE_DT_INST_DEFINE(index, rtc_ti_mspm0_pm_action);			\
 										\
-DEVICE_DT_INST_DEFINE(n, &rtc_ti_mspm0_init, NULL, &rtc_data_##n,		\
+	DEVICE_DT_INST_DEFINE(n, &rtc_ti_mspm0_init, PM_DEVICE_DT_INST_GET(index), &rtc_data_##n,	\
 		      &rtc_config_##n, PRE_KERNEL_1,				\
 		      CONFIG_RTC_INIT_PRIORITY, &rtc_ti_mspm0_driver_api);
 

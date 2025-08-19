@@ -54,6 +54,12 @@
 			clock-frequency = <DT_FREQ_M(32)>;
 		};
 
+		mfclk: mfclk {
+			#clock-cells = <1>;
+			compatible = "ti,mspm0-clk";
+			clock-frequency = <DT_FREQ_M(4)>;
+		};
+
 		mclk: mclk {
 			#clock-cells = <1>;
 			compatible = "ti,mspm0-clk";
@@ -143,6 +149,7 @@
 		uart0: uart@40108000 {
 			compatible = "ti,mspm0-uart";
 			reg = <0x40108000 0x2000>;
+			interrupts = <15 0>;
 			current-speed = <115200>;
 			clocks = <&ckm MSPM0_CLOCK_ULPCLK>;
 			clk-div = <1>;

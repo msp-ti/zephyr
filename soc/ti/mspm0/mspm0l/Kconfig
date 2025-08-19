@@ -15,3 +15,5 @@ config SOC_SERIES_MSPM0L
 	select HAS_MSPM0_SDK
 	select CLOCK_CONTROL
 	select SOC_EARLY_INIT_HOOK
+  select HAS_PM
+	select HAS_POWEROFF

@@ -15,6 +15,9 @@
    <a href="https://github.com/zephyrproject-rtos/zephyr/actions/workflows/twister.yaml?query=branch%3Amain"><img src="https://github.com/zephyrproject-rtos/zephyr/actions/workflows/twister.yaml/badge.svg?event=push"></a>
 
 
+**NOTE** this repository has been archived in favor of a newer maintained
+repository found on the TI github page: https://github.com/TexasInstruments/zephyr
+
 The Zephyr Project is a scalable real-time operating system (RTOS) supporting
 multiple hardware architectures, optimized for resource constrained devices,
 and built with security in mind.
